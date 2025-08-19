@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import CustomUser, OTP, UserProfile
 from django.contrib.auth import get_user_model, authenticate
 from payment.models import Subscription
-
+from notifications.models import Notification
 User = get_user_model()
 
 from rest_framework import serializers
@@ -65,6 +65,13 @@ class CustomUserCreateSerializer(serializers.ModelSerializer):
             role=validated_data.get('role', 'user')
         )
         UserProfile.objects.create(user=user, name=name)
+     
+        Notification.objects.create(
+        user=user,
+        title="New User Registration",
+        message=f"Hello {name}, has successfully registered to the platform",
+        notification_type="user_management"
+    )
         return user
 
 class OTPSerializer(serializers.ModelSerializer):

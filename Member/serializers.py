@@ -17,23 +17,26 @@ class UserProfileSerializer(serializers.ModelSerializer):
 class MemberSerializer(serializers.ModelSerializer):
     member_id = serializers.IntegerField(source='id', read_only=True)
     farm_id = serializers.IntegerField(source='farm.id', read_only=True)
-    farm_user_id = serializers.IntegerField(source='farm_user.id', read_only=True)
     farm_email = serializers.EmailField(source='farm.email', read_only=True)
     farm_name = serializers.CharField(source='farm.user_profile.name', read_only=True, allow_null=True)
     farm_user_email = serializers.EmailField(source='farm_user.email', read_only=True)
     farm_user_profile = serializers.SerializerMethodField(read_only=True)
+    farm = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.filter(role='farm'),
+        write_only=True
+    )
+    
     # Fields for creating a new farm_user
     email = serializers.EmailField(write_only=True, required=True)
     password = serializers.CharField(write_only=True, required=True)
     name = serializers.CharField(write_only=True, required=True, allow_blank=True)
-    phone_number = serializers.CharField(write_only=True, required=True, allow_blank=True)
-    profile_picture = serializers.ImageField(write_only=True, required=True, allow_null=True)
+    profile_picture = serializers.ImageField(write_only=True, required=False, allow_null=True)
 
     class Meta:
         model = Member
         fields = [
-            'member_id', 'farm_id', 'farm_email', 'farm_name', 'farm_user_id', 'farm_user_email', 'farm_user_profile',
-            'created_at', 'is_active', 'email', 'password', 'name', 'phone_number', 'profile_picture'
+            'member_id', 'farm', 'farm_id', 'farm_email', 'farm_name', 'farm_user_id', 'farm_user_email', 'farm_user_profile',
+            'created_at', 'is_active', 'email', 'password', 'name', 'profile_picture'
         ]
         read_only_fields = ['member_id', 'farm_id', 'farm_user_id', 'farm_email', 'farm_name', 'farm_user_email', 'farm_user_profile', 'created_at', 'is_active']
 

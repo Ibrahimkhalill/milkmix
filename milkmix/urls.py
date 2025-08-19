@@ -26,5 +26,8 @@ urlpatterns = [
     path('api/', include("milkhistory.urls")),
     path('api/', include("Member.urls")),
     path('api/', include("consultant.urls")),
+    path('api/', include("advertisement.urls")),
+    path('api/', include("notifications.urls")),
+ 
  
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

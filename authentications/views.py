@@ -100,10 +100,23 @@ def login(request):
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def list_users(request):
-    users = User.objects.all()
+    users = User.objects.all().exclude(role="admin")
     serializer = CustomUserSerializer(users, many=True)
     return Response(serializer.data)
 
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def latest_joined_users(request):
+    users = (
+        CustomUser.objects
+        .select_related("user_profile")
+        .exclude(role="admin")   # 👈 skip admin
+        .order_by("-user_profile__joined_date")
+    )
+    serializer = CustomUserSerializer(users, many=True)
+    return Response(serializer.data)
 
 
 @api_view(['GET', 'PUT'])
