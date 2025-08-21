@@ -93,7 +93,7 @@ def manage_consultant_request(request, pk):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_pending_requests(request):
-    if request.user.role not in ['farm', 'admin']:
+    if request.user.role not in ['farm', 'admin','consultant']:
         return error_response(
             code=403,
             details={"error": ["Only farms or admins can view pending requests"]}
@@ -108,6 +108,8 @@ def list_pending_requests(request):
         "data": serializer.data
     }, status=status.HTTP_200_OK)
     
+ 
+ 
     
     
 @api_view(['GET'])
