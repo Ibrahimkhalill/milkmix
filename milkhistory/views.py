@@ -30,16 +30,24 @@ def create_milk_history(request):
         }, status=status.HTTP_201_CREATED)
     return error_response(code=400, details=serializer.errors)
 
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_all_history(request):
+    # Farm users see only their records; consultants/admins see all
+    milk_histories = MilkHistory.objects.filter(user=request.user)
+    milk_histories.delete()
+    return Response({"message": "Milk history record deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_milk_history(request):
     # Farm users see only their records; consultants/admins see all
-    if request.user.role == 'farm_user':
-        milk_histories = MilkHistory.objects.filter(user=request.user)
-    else:  # consultant or admin
-        milk_histories = MilkHistory.objects.all()
+    milk_histories = MilkHistory.objects.filter(user=request.user)
     serializer = MilkHistorySerializer(milk_histories, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])

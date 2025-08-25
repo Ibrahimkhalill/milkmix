@@ -9,4 +9,5 @@ urlpatterns = [
     path('consultants/request-list/', views.list_pending_requests, name='manage_consultant_request'),
     path('consultants/farm/list/', views.list_accepted_requests, name='manage_consultant_request'),
     path('consultants/farm/<int:farm_id>/memnber-list/', views.list_farm_members, name='manage_consultant_request'),
+    path('consultants/get/pending-request/', views.list_pending_requests_consultant, name='list_pending_requests_consultant'),
 ]

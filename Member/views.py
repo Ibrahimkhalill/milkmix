@@ -35,7 +35,40 @@ def list_farm_members(request, farm_id):
             code=404,
             details={"error": ["Farm not found or not a farm role"]}
         )
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def member_delete(request, member_id):
+    try:
+        # Get the member
+        farm_member = Member.objects.get(id=member_id)
+      
         
+        # Delete the associated user
+        user = CustomUser.objects.get(id=farm_member.farm_user.id)
+     
+        user.delete()
+        
+        return Response({"message": "Member deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+    
+    except Member.DoesNotExist:
+        return error_response(
+            code=404,
+            details={"error": ["Member not found"]}
+        )
+    
+    except CustomUser.DoesNotExist:
+        return error_response(
+            code=404,
+            details={"error": ["Associated user not found"]}
+        )
+    
+    except Exception as e:
+        return error_response(
+            code=500,
+            details={"error": [str(e)]}
+        )    
         
         
 @api_view(['GET'])

@@ -110,6 +110,20 @@ def list_pending_requests(request):
     
  
  
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_pending_requests_consultant(request):
+ 
+    requests = ConsultantRequest.objects.filter(
+        consultant=request.user,
+        status='pending'
+    )
+    serializer = ConsultantRequestSerializer(requests, many=True)
+    return Response({
+        "message": "Pending consultant requests retrieved successfully",
+        "data": serializer.data
+    }, status=status.HTTP_200_OK)
+ 
     
     
 @api_view(['GET'])

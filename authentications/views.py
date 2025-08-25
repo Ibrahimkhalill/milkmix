@@ -408,3 +408,33 @@ def change_password(request):
     user.set_password(new_password)
     user.save()
     return Response({'message': 'Password changed successfully'}, status=status.HTTP_200_OK)
+
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAdminUser])  # Only admins can delete users
+def delete_user(request, id):
+    try:
+        user = CustomUser.objects.get(id=id)
+        
+        # Prevent deleting admin users accidentally
+        if user.role == 'admin':
+            return error_response(
+                code=403,
+                details={"error": ["Admin users cannot be deleted"]}
+            )
+        
+        user.delete()
+        return Response({"message": "User deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+    
+    except CustomUser.DoesNotExist:
+        return error_response(
+            code=404,
+            details={"error": ["User not found"]}
+        )
+    
+    except Exception as e:
+        return error_response(
+            code=500,
+            details={"error": [str(e)]}
+        )

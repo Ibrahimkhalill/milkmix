@@ -50,7 +50,8 @@ INSTALLED_APPS = [
     'Member',
     'consultant',
     'advertisement',
-    'notifications'
+    'notifications',
+    'support'
    
    
 ]

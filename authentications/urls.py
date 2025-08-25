@@ -13,4 +13,5 @@ urlpatterns = [
     path('password-reset/confirm/', views.reset_password),
     path('password-change/', views.change_password),
     path('reset/otp-verify/', views.verify_otp_reset),
+    path('user/<int:id>/delete/', views.delete_user),
 ]
