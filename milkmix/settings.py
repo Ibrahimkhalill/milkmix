@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'authentications',
     'payment',
-    'apscheduler',
     'corsheaders',
     'milkhistory',
     'Member',
