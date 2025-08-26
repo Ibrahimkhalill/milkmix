@@ -58,6 +58,11 @@ class MilkHistory(models.Model):
         max_length=400, null=True, blank=True,
         help_text=_('Total volume of the milk mixture prepared')
     )
+    
+    unit = models.CharField(
+        max_length=100, null=True, blank=True,
+        help_text=_('Unit of measurement for volumes and weights (e.g., liters, pounds)')
+    )
 
     class Meta:
         verbose_name = _('Milk History')

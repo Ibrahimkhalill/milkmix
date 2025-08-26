@@ -16,7 +16,7 @@ class MilkHistorySerializer(serializers.ModelSerializer):
             'bottle_size', 'number_of_bottles', 'hospital_solids',
             'hospital_milk_volume', 'desired_solids_content',
             'pounds_of_water', 'pounds_of_milk_replacer',
-            'solids_hospital_milk', 'hospital_milk_used', 'total_volume'
+            'solids_hospital_milk', 'hospital_milk_used', 'total_volume', 'unit'
         ]
         read_only_fields = ['id', 'user', 'user_email', 'farm', 'farm_email', 'created_at']
 
