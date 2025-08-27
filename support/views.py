@@ -8,7 +8,7 @@ from rest_framework import status
 from .serializers import SupportRequestSerializer
 from rest_framework.permissions import IsAdminUser , IsAuthenticated
 from notifications.models import Notification
-
+from .models import SupportRequest
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -29,8 +29,6 @@ def submit_support_request(request):
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def submit_support_list(request):
-    serializer = SupportRequestSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response({"message": "Support request submitted successfully!"}, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    support = SupportRequest.objects.all().order_by('-created_at')
+    serializer = SupportRequestSerializer(support, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
