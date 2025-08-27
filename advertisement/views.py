@@ -24,17 +24,25 @@ def advertisement_list_create(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-# New View: Latest Advertisement for Authenticated Users
+from django.utils import timezone
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def advertisement_list_for_user(request):
     if request.method == 'GET':
-        advertisement = Advertisement.objects.order_by('-created_at').first()  # Get latest ad
+        now = timezone.now()
+        
+        # Filter advertisements that are currently active
+        advertisement = Advertisement.objects.filter(
+            start_date__lte=now,
+            end_date__gte=now
+        ).order_by('-created_at').first()  # Get the latest active ad
+        
         if advertisement:
             serializer = AdvertisementSerializer(advertisement)
             return Response(serializer.data)
-        return Response({"detail": "No advertisements available"}, status=status.HTTP_404_NOT_FOUND)
+        
+        return Response({"detail": "No active advertisements available"}, status=status.HTTP_404_NOT_FOUND)
+
     
   
 

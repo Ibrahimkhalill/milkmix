@@ -2,6 +2,11 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from Member.models import Member
+from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
+from datetime import timedelta
+
+
 
 class MilkHistory(models.Model):
     user = models.ForeignKey(
@@ -86,3 +91,7 @@ class MilkHistory(models.Model):
         if self.user.role == 'farm' and self.farm != self.user:
             raise ValueError("Farm user must set farm field to themselves")
         super().save(*args, **kwargs)
+    
+        # --- delete old records after save ---
+        one_month_ago = timezone.now() - timedelta(days=30)
+        self.__class__.objects.filter(created_at__lt=one_month_ago).delete()
