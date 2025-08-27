@@ -79,17 +79,9 @@ class MilkHistory(models.Model):
 
     def save(self, *args, **kwargs):
         # Validate user role
-        if self.user.role not in ['farm', 'farm_user']:
+        if self.user.role not in ['farm', 'farm_user', 'admin', 'consultant']:
             raise ValueError("User must have role 'farm' or 'farm_user'")
-        # Validate farm role
-        if self.farm.role != 'farm':
-            raise ValueError("Farm must have role 'farm'")
-        # For farm_user, ensure they are an active member of the farm
-        if self.user.role == 'farm_user' and not Member.objects.filter(farm=self.farm, farm_user=self.user, is_active=True).exists():
-            raise ValueError("User is not an active member of this farm")
-        # For farm, ensure farm field matches the user
-        if self.user.role == 'farm' and self.farm != self.user:
-            raise ValueError("Farm user must set farm field to themselves")
+
         super().save(*args, **kwargs)
     
         # --- delete old records after save ---
