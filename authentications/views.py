@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import get_user_model
-from .models import OTP, UserProfile , CustomUser
+from .models import OTP, UserProfile, CustomUser
 from .serializers import (
     CustomUserSerializer,
     CustomUserCreateSerializer,
@@ -23,22 +23,25 @@ from django.core.exceptions import ValidationError
 from milkmix.utils import error_response
 import random
 
+
 def generate_otp():
     return str(random.randint(100000, 999999))
 
+
 User = get_user_model()
 
+
 def send_otp_email(email, otp):
-    html_content = render_to_string('otp_email_template.html', {'otp': otp, 'email': email})
+    html_content = render_to_string('otp_email_template.html', {
+                                    'otp': otp, 'email': email})
     msg = EmailMultiAlternatives(
         subject='Your OTP Code',
         body=f'Your OTP is {otp}',
-        from_email='hijabpoint374@gmail.com',
+        from_email='MilkMix <milkmix@milkmix.net>',
         to=[email]
     )
     msg.attach_alternative(html_content, "text/html")
     msg.send(fail_silently=False)
-
 
 
 @api_view(['POST'])
@@ -73,7 +76,6 @@ def register_user(request):
     return error_response(code=400, details=serializer.errors)
 
 
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login(request):
@@ -85,13 +87,14 @@ def login(request):
             is_verified = user.is_verified
             profile = user.user_profile
         except UserProfile.DoesNotExist:
-            profile = UserProfile.objects.create(user=user, name=user.email.split('@')[0])
+            profile = UserProfile.objects.create(
+                user=user, name=user.email.split('@')[0])
         profile_serializer = UserProfileSerializer(profile)
         return Response({
             "access_token": str(refresh.access_token),
             "refresh_token": str(refresh),
             "role": user.role,
-            "is_verified" : is_verified,
+            "is_verified": is_verified,
             "profile": profile_serializer.data
         }, status=status.HTTP_200_OK)
     return error_response(code=401, details=serializer.errors)
@@ -103,7 +106,6 @@ def list_users(request):
     users = User.objects.all().exclude(role="admin")
     serializer = CustomUserSerializer(users, many=True)
     return Response(serializer.data)
-
 
 
 @api_view(['GET'])
@@ -125,7 +127,8 @@ def user_profile(request):
     try:
         profile = request.user.user_profile
     except UserProfile.DoesNotExist:
-        profile = UserProfile.objects.create(user=request.user, name=request.user.email.split('@')[0])
+        profile = UserProfile.objects.create(
+            user=request.user, name=request.user.email.split('@')[0])
 
     if request.method == 'GET':
         user = CustomUser.objects.get(id=request.user.id)
@@ -133,13 +136,12 @@ def user_profile(request):
         return Response(serializer.data)
 
     if request.method == 'PUT':
-        serializer = UserProfileSerializer(profile, data=request.data, partial=True)
+        serializer = UserProfileSerializer(
+            profile, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return error_response(code=400, details=serializer.errors)
-
-
 
 
 @api_view(['POST'])
@@ -151,7 +153,7 @@ def create_otp(request):
             code=400,
             details={"email": ["This field is required"]}
         )
-    
+
     try:
         user = User.objects.get(email=email)
         if user.is_verified:
@@ -164,7 +166,7 @@ def create_otp(request):
             code=404,
             details={"email": ["No user exists with this email"]}
         )
-    
+
     otp = generate_otp()
     otp_data = {'email': email, 'otp': otp}
     OTP.objects.filter(email=email).delete()
@@ -182,12 +184,13 @@ def create_otp(request):
         return Response({"message": "OTP sent to your email"}, status=status.HTTP_201_CREATED)
     return error_response(code=400, details=serializer.errors)
 
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def verify_otp_reset(request):
     email = request.data.get('email')
     otp_value = request.data.get('otp')
-    
+
     if not email or not otp_value:
         details = {}
         if not email:
@@ -195,7 +198,7 @@ def verify_otp_reset(request):
         if not otp_value:
             details["otp"] = ["This field is required"]
         return error_response(code=400, details=details)
-    
+
     try:
         otp_obj = OTP.objects.get(email=email)
         if otp_obj.otp != otp_value:
@@ -213,13 +216,13 @@ def verify_otp_reset(request):
         return error_response(
             code=404,
             details={"email": ["No OTP found for this email"]})
-        
-        
+
+
 @api_view(['POST'])
 def verify_otp(request):
     email = request.data.get('email')
     otp_value = request.data.get('otp')
-    
+
     if not email or not otp_value:
         details = {}
         if not email:
@@ -227,7 +230,7 @@ def verify_otp(request):
         if not otp_value:
             details["otp"] = ["This field is required"]
         return error_response(code=400, details=details)
-    
+
     try:
         otp_obj = OTP.objects.get(email=email)
         if otp_obj.otp != otp_value:
@@ -240,7 +243,7 @@ def verify_otp(request):
                 code=400,
                 details={"otp": ["The OTP has expired"]}
             )
-        
+
         # Verify the user
         try:
             user = User.objects.get(email=email)
@@ -253,16 +256,17 @@ def verify_otp(request):
             user.is_active = True  # Activate user after verification
             user.save()
             otp_obj.delete()
-            
+
             # Generate JWT tokens
             refresh = RefreshToken.for_user(user)
-            
+
             # Ensure UserProfile exists
             try:
                 profile = user.user_profile
             except UserProfile.DoesNotExist:
-                profile = UserProfile.objects.create(user=user, name=user.email.split('@')[0])
-            
+                profile = UserProfile.objects.create(
+                    user=user, name=user.email.split('@')[0])
+
             profile_serializer = UserProfileSerializer(profile)
             return Response({
                 "message": "Email verified successfully",
@@ -283,6 +287,7 @@ def verify_otp(request):
             details={"email": ["No OTP found for this email"]}
         )
 
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def request_password_reset(request):
@@ -292,13 +297,14 @@ def request_password_reset(request):
             code=400,
             details={"email": ["This field is required"]}
         )
-    
+
     try:
         user = User.objects.get(email=email)
         if not user.is_verified:
             return error_response(
                 code=400,
-                details={"email": ["Please verify your email before resetting your password"]}
+                details={
+                    "email": ["Please verify your email before resetting your password"]}
             )
     except User.DoesNotExist:
         return error_response(
@@ -323,6 +329,7 @@ def request_password_reset(request):
         return Response({"message": "OTP sent to your email"}, status=status.HTTP_201_CREATED)
     return error_response(code=400, details=serializer.errors)
 
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def reset_password(request):
@@ -334,7 +341,7 @@ def reset_password(request):
         details = {}
         if not email:
             details["email"] = ["This field is required"]
-        
+
         if not new_password:
             details["new_password"] = ["This field is required"]
         return error_response(code=400, details=details)
@@ -346,12 +353,13 @@ def reset_password(request):
                 code=400,
                 details={"otp": ["The provided OTP is invalid"]}
             )
-       
+
         user = User.objects.get(email=email)
         if not user.is_verified:
             return error_response(
                 code=400,
-                details={"email": ["Please verify your email before resetting your password"]}
+                details={
+                    "email": ["Please verify your email before resetting your password"]}
             )
         try:
             validate_password(new_password, user)
@@ -375,6 +383,7 @@ def reset_password(request):
             code=404,
             details={"email": ["No user exists with this email"]}
         )
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -410,29 +419,28 @@ def change_password(request):
     return Response({'message': 'Password changed successfully'}, status=status.HTTP_200_OK)
 
 
-
 @api_view(['DELETE'])
 @permission_classes([IsAdminUser])  # Only admins can delete users
 def delete_user(request, id):
     try:
         user = CustomUser.objects.get(id=id)
-        
+
         # Prevent deleting admin users accidentally
         if user.role == 'admin':
             return error_response(
                 code=403,
                 details={"error": ["Admin users cannot be deleted"]}
             )
-        
+
         user.delete()
         return Response({"message": "User deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
-    
+
     except CustomUser.DoesNotExist:
         return error_response(
             code=404,
             details={"error": ["User not found"]}
         )
-    
+
     except Exception as e:
         return error_response(
             code=500,
