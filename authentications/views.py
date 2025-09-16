@@ -35,7 +35,7 @@ def send_otp_email(email, otp):
     html_content = render_to_string('otp_email_template.html', {
                                     'otp': otp, 'email': email})
     msg = EmailMultiAlternatives(
-        subject='Your OTP Code',
+        subject='Your Verification Code',
         body=f'Your OTP is {otp}',
         from_email='MilkMix <milkmix@milkmix.net>',
         to=[email]

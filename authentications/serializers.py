@@ -31,10 +31,11 @@ class CustomUserCreateSerializer(serializers.ModelSerializer):
     name = serializers.CharField(write_only=True, required=True)
     email = serializers.EmailField(required=True)
     role = serializers.ChoiceField(choices=CustomUser.ROLES, default='user')
+    farm_name = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'password', 'role', 'name']
+        fields = ['id', 'email', 'password', 'role', 'name', 'farm_name']
         extra_kwargs = {
             'email': {'required': True},
             'password': {'required': True}
@@ -48,31 +49,57 @@ class CustomUserCreateSerializer(serializers.ModelSerializer):
             errors['password'] = ['This field is required']
         if not data.get('name'):
             errors['name'] = ['This field is required']
+
+        # Check if verified user already exists
         if data.get('email') and User.objects.filter(email=data['email'], is_verified=True).exists():
             errors['email'] = ['A user with this email already exists']
-        if data.get('role') and data['role'] not in dict(CustomUser.ROLES).keys():
-            errors['role'] = [f"Invalid role. Must be one of: {', '.join(dict(CustomUser.ROLES).keys())}"]
+
         if errors:
             raise serializers.ValidationError(errors)
         return data
 
     def create(self, validated_data):
         name = validated_data.pop('name')
-        User.objects.filter(email=validated_data['email'], is_verified=False).delete()
-        user = User.objects.create_user(
-            email=validated_data['email'],
-            password=validated_data['password'],
-            role=validated_data.get('role', 'user')
-        )
-        UserProfile.objects.create(user=user, name=name)
-     
+        farm_name = validated_data.pop('farm_name', None)  # safe pop
+
+        # Check if unverified user exists
+        user = User.objects.filter(email=validated_data['email'], is_verified=False).first()
+
+        if user:
+            # Update the existing unverified user
+            user.set_password(validated_data['password'])
+            user.role = validated_data.get('role', 'user')
+            user.save()
+        else:
+            # Create new user if not found
+            user = User.objects.create_user(
+                email=validated_data['email'],
+                password=validated_data['password'],
+                role=validated_data.get('role', 'user')
+            )
+
+        # Create or update profile
+        if user.role == "farm":
+            UserProfile.objects.update_or_create(
+                user=user,
+                defaults={"name": name, "farm_name": farm_name}
+            )
+        else:
+            UserProfile.objects.update_or_create(
+                user=user,
+                defaults={"name": name}
+            )
+
+        # Always send notification
         Notification.objects.create(
-        user=user,
-        title="New User Registration",
-        message=f"Hello {name}, has successfully registered to the platform",
-        notification_type="user_management"
-    )
+            user=user,
+            title="New User Registration",
+            message=f"A new {user.role} has registered your platform: {name} ({user.email})",
+            notification_type="user_management"
+        )
+
         return user
+
 
 class OTPSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True)

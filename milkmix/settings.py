@@ -24,13 +24,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-4tlcs4%j!v@6471!sy5r=8&t#i0#g!m39#j!1mtp%gp&l+sdtt'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://lamprey-included-lion.ngrok-free.app',
-]
 # Application definition
 
 INSTALLED_APPS = [
@@ -173,5 +170,5 @@ EMAIL_PORT = 465
 EMAIL_USE_SSL = True  # SSL instead of TLS on port 465
 EMAIL_USE_TLS = False  # Disable TLS since you're using SSL
 EMAIL_HOST_USER = 'milkmix@milkmix.net'  # Your Hostinger email address
-EMAIL_HOST_PASSWORD = 'Alamoman123.?'  # The email password set in Hostinger
+EMAIL_HOST_PASSWORD = 'Milkingcows@1975'  # The email password set in Hostinger
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
